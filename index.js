@@ -1,10 +1,7 @@
 require('dotenv').config();
 const Telegraf = require('telegraf');
-const { read } = require('fs');
 const CharacterAI = require('node_characterai');
 const characterAI = new CharacterAI();
-const { Builder, By, Key, until } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -19,11 +16,6 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
     const chat = await characterAI.createOrContinueChat(characterId);
     console.log('Successfully created/continued chat with Character AI');
 
-    const driver = await new Builder()
-      .forBrowser('chrome')
-      .setChromeOptions(new chrome.Options().headless().addArguments('--disable-dev-shm-usage'))
-      .build();
-
     bot.start((ctx) => {
       ctx.reply('Welcome ' + ctx.from.first_name);
     });
@@ -32,10 +24,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
       try {
         console.log(`Received message: "${ctx.message.text}" from ${ctx.from.first_name}`);
 
-        await driver.get('https://example.com');
-        await driver.findElement(By.name('q')).sendKeys(ctx.message.text, Key.RETURN);
-        await driver.wait(until.elementLocated(By.id('search')));
-        const response = await driver.findElement(By.id('search')).getText();
+        const response = await chat.sendAndAwaitResponse(ctx.message.text, true);
         console.log(`Response from Character AI: "${response}"`);
 
         ctx.reply(response);
